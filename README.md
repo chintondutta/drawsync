@@ -1,84 +1,204 @@
-# Turborepo starter
+# DrawSync
 
-This Turborepo starter is maintained by the Turborepo core team.
+A high-performance backend for a real-time collaborative drawing and chat application. Features JWT auth, multi-room management, and real-time collaboration using WebSocket and Redis pub/sub/queues. Built for scalability and developer experience.
 
-## Using this example
 
-Run the following command:
+## Tech Stack
 
-```sh
-npx create-turbo@latest
+- **Language:** TypeScript
+- **Backend:** Express.js
+- **Database:** PostgreSQL (via Prisma)
+- **Realtime:** WebSocket (`ws`)
+- **Cache/Queue:** Redis (`ioredis`)
+- **Auth:** Passport.js + JWT
+- **Validation:** Zod
+- **Monorepo:** TurboRepo (`apps/`, `packages/`)
+
+
+## Features
+
+- User authentication (JWT)
+- Room creation, join, leave, delete
+- WebSocket-powered real-time sync:
+  - Canvas diff updates
+  - Chat
+  - Cursor tracking
+  - Presence awareness
+- Redis queues for canvas
+- Redis pub/sub for real-time events
+- Modular and production-ready structure
+
+
+## Getting Started
+
+### 1. Clone and Install
+
+```bash
+git clone https://github.com/chintondutta/drawsync.git
+cd drawsync
+pnpm install
 ```
 
-## What's inside?
+### 2. Setup Environment
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm build
+```bash
+cp .env.example .env
 ```
 
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm dev
+```env
+packages/db/.env : DATABASE_URL=your_postgreSQL_url_here
+packages/cache/.env : REDIS_URL=your_redis_url_here
+packages/auth/.env : JWT_SECRET=your_jwt_secret
 ```
 
-### Remote Caching
+### 3. Start Dev Servers
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
+```bash
+turbo run dev
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+- REST API → `http://localhost:3000`
+- WebSocket → `ws://localhost:8080`
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
 
-```
-npx turbo link
-```
+## Testing Guide 
 
-## Useful Links
 
-Learn more about the power of Turborepo:
+### REST API Endpoints
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+BASE_URL = localhost:3000
+
+1. POST /signup
+    ```json
+    {
+    "email": "test@example.com",
+    "password": "test123"
+    }
+    ```
+
+2. POST /signin
+    ```json
+    {
+    "email": "test@example.com",
+    "password": "test123"
+    }
+    ```
+    Response:
+    ```json
+    {
+    "token": "<JWT_TOKEN>"
+    }
+    ```
+    Use in all protected routes:
+
+Authorization: Bearer <JWT_TOKEN>
+
+3. POST /room
+    ```json
+    {
+    "slug": "team-room"
+    }
+    ```
+
+4. POST /room/slug/join
+
+5. POST /room/slug/leave
+
+6. DELETE /room/:roomId
+
+
+### WebSocket API
+
+BASE_URL = localhost:8080?token=<JWT_TOKEN>
+
+1. Canvas
+
+    **Add Element** 
+    ```json
+    {
+    "type": "canvas-diff",
+    "roomId": "ROOM_ID",
+    "diff": {
+        "action": "add",
+        "id": "rect-001",
+        "data": {
+        "id": "rect-001",
+        "type": "rectangle",
+        "x": 100,
+        "y": 150,
+        "width": 200,
+        "height": 100,
+        "color": "#2196F3",
+        "version": 1,
+        "versionNonce": 1234,
+        "updatedAt": 1720901000
+        }
+    }
+    }
+    ```
+
+    **Update Element**
+    ```json
+    {
+    "type": "canvas-diff",
+    "roomId": "ROOM_ID",
+    "diff": {
+        "action": "update",
+        "id": "rect-001",
+        "data": {
+        "x": 300,
+        "y": 200,
+        "color": "#4CAF50",
+        "version": 2,
+        "versionNonce": 5678,
+        "updatedAt": 1720902000
+        }
+    }
+    }
+    ```
+
+    **Delete Element**
+    ```json
+    {
+    "type": "canvas-diff",
+    "roomId": "ROOM_ID",
+    "diff": {
+        "action": "delete",
+        "id": "rect-001",
+        "data": {
+        "version": 3,
+        "versionNonce": 7890,
+        "updatedAt": 1720903000
+        }
+    }
+    }
+    ```
+
+**Versioning & Conflict Resolution**
+
+Each canvas element carries:
+
+version: increments on every change
+versionNonce: random number to break ties if versions are equal
+updatedAt: server time
+
+The backend merges incoming updates only if: The version is higher than the current or version is equal but versionNonce is higher. This avoids overwrite conflicts in concurrent edits.
+
+2. Chat
+    ```json
+    {
+    "type": "message",
+    "roomId": "ROOM_ID",
+    "message": "Hello team!"
+    }
+    ```
+
+3. Cursor
+    ```json
+    {
+    "type": "cursor-update",
+    "roomId": "ROOM_ID",
+    "x": 520,
+    "y": 340
+    }
+    ```

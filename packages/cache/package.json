@@ -1,0 +1,32 @@
+{
+  "name": "@repo/cache",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "exports": {
+    "./client": "./dist/index.js",
+    "./presence": "./dist/presence.js",
+    "./cursor": "./dist/cursor.js",
+    "./chat": "./dist/chat.js",
+    "./subscriber": "./dist/subscriber.js",
+    "./publisher": "./dist/publisher.js",
+    "./room": "./dist/room.js",
+    "./canvas": "./dist/canvas.js"
+  },
+  "devDependencies": {
+    "@repo/db": "workspace:*",
+    "@repo/typescript-config": "workspace:*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/dotenv": "^8.2.3",
+    "@upstash/redis": "^1.35.1",
+    "dotenv": "^16.5.0",
+    "ioredis": "^5.6.1"
+  }
+}
